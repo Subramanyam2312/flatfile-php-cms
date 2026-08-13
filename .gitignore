@@ -1,0 +1,15 @@
+.DS_Store
+**/.DS_Store
+*.swp
+*.bak
+
+# The content store is site data, not source. Only the .htaccess and the
+# directory itself are tracked — a clone starts empty and runs setup.
+data/*
+!data/.htaccess
+!data/.gitkeep
+
+# Uploaded media is user content.
+public/uploads/*
+!public/uploads/.htaccess
+!public/uploads/.gitkeep

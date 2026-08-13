@@ -1,0 +1,164 @@
+/* Public site styles. Replace this file wholesale — it is a starting point,
+   not a design system. The markup it targets is in views/site/. */
+
+:root {
+    --accent: #2b6cb0;
+    --ink: #1a1f26;
+    --muted: #5b6472;
+    --line: #e4e7eb;
+    --bg: #fff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 17px/1.65 Georgia, "Iowan Old Style", "Times New Roman", serif;
+}
+
+a { color: var(--accent); }
+
+main { max-width: 42rem; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+/* --- chrome ------------------------------------------------------------ */
+
+.site-head {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 0;
+}
+
+.site-head .brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-decoration: none;
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.site-head .tagline { margin: .25rem 0 0; color: var(--muted); font-size: .95rem; }
+
+.site-head nav {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--line);
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: .95rem;
+}
+
+.site-foot {
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 1.5rem 1.25rem 3rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: .9rem;
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+/* --- content ----------------------------------------------------------- */
+
+h1, h2, h3, h4 {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.25;
+}
+
+h1 { font-size: 2rem; margin: 0 0 1rem; }
+
+.prose img, .lead-image {
+    max-width: 100%;
+    height: auto;
+    border-radius: 8px;
+    display: block;
+    margin: 1.5rem 0;
+}
+
+.prose blockquote {
+    margin: 1.5rem 0;
+    padding-left: 1.25rem;
+    border-left: 3px solid var(--line);
+    color: var(--muted);
+}
+
+.prose pre {
+    background: #f6f7f9;
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: .9rem;
+}
+
+.prose code {
+    font: .9em ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: #f6f7f9;
+    padding: .1rem .35rem;
+    border-radius: 4px;
+}
+
+.prose pre code { background: none; padding: 0; }
+
+time { color: var(--muted); font-size: .9rem; font-family: system-ui, sans-serif; }
+
+.muted { color: var(--muted); }
+
+.post-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 2rem; }
+.post-list h2 { margin: 0 0 .25rem; font-size: 1.25rem; }
+.post-list h2 a { text-decoration: none; }
+.post-list h2 a:hover { text-decoration: underline; }
+.post-list p { margin: .5rem 0 0; color: var(--muted); }
+
+/* --- contact form ------------------------------------------------------ */
+
+.contact {
+    display: grid;
+    gap: 1rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
+    font-family: system-ui, -apple-system, sans-serif;
+}
+
+.contact label { display: grid; gap: .3rem; font-size: .95rem; font-weight: 550; }
+
+.contact input, .contact textarea {
+    font: inherit;
+    padding: .55rem .65rem;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    width: 100%;
+}
+
+.contact button {
+    font: inherit;
+    font-weight: 550;
+    padding: .6rem 1.2rem;
+    border: none;
+    border-radius: 7px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    justify-self: start;
+}
+
+/* The honeypot. Hidden from people and from screen readers; bots fill it in
+   because they parse the markup and do not read CSS. */
+.trap {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+.flash {
+    padding: .6rem .9rem;
+    border-radius: 8px;
+    background: #e8f5ec;
+    color: #1a7f37;
+    font-family: system-ui, sans-serif;
+    font-size: .95rem;
+}

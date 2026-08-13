@@ -1,0 +1,17 @@
+# Deny direct web access to the data store.
+#
+# This is the first line of defence, not the only one. Every file in here is a
+# .php file beginning "<?php exit; ?>", so even where this .htaccess is ignored
+# — nginx, AllowOverride None, or the file lost during an upload — a direct
+# request executes the file, hits exit, and returns nothing.
+#
+# Keep both. This one is cheap and stops the request earlier.
+
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

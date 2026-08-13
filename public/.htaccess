@@ -1,0 +1,52 @@
+# Web root configuration.
+#
+# On shared hosting the contents of this directory become public_html. Everything
+# else — src/, views/, data/ — sits one level above it and is therefore
+# unreachable over HTTP by construction rather than by rule.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # --- Cheap perimeter ---------------------------------------------------
+    # Refuse the loudest probes before PHP starts. Matches the request line
+    # only, never POST bodies, so the admin can still submit code samples.
+    RewriteCond %{QUERY_STRING} (union[\s+]+select|information_schema) [NC,OR]
+    RewriteCond %{QUERY_STRING} (<script|%3cscript|javascript:|onerror\s*=) [NC,OR]
+    RewriteCond %{QUERY_STRING} (\.\./|%2e%2e|/etc/passwd|php://|file://) [NC]
+    RewriteRule ^ - [F]
+
+    # Paths this application does not have.
+    RewriteRule (?:^|/)(?:wp-login\.php|wp-admin|xmlrpc\.php|wp-content)(?:/|$) - [F,NC]
+    RewriteRule (?:^|/)(?:phpmyadmin|adminer\.php|\.git|\.env)(?:/|$) - [F,NC]
+
+    # --- HTTPS -------------------------------------------------------------
+    # Shared hosts terminate TLS at a proxy, so the request arrives on :80 with
+    # X-Forwarded-Proto set. Checking %{HTTPS} alone causes a redirect loop.
+    RewriteCond %{HTTP:X-Forwarded-Proto} !https
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP_HOST} !^localhost [NC]
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1 [NC]
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+    # --- Front controller --------------------------------------------------
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [L]
+</IfModule>
+
+# Without this, /assets/ lists the whole directory.
+Options -Indexes
+
+# Dotfiles, even if one is ever misplaced in here.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<FilesMatch "\.(env|md|json|lock|sql|log|ini|yml|yaml|bak|swp)$">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

@@ -1,0 +1,44 @@
+# Uploads are user-supplied bytes served from the web root, so execution has to be
+# impossible here rather than merely unlikely.
+#
+# The upload handler already validates by finfo MIME sniffing and rewrites every
+# filename to random hex, but this is the layer that holds if that one ever fails.
+
+# Kill every handler that could execute a file in this directory.
+<IfModule mod_php.c>
+    php_flag engine off
+</IfModule>
+
+<IfModule mod_php7.c>
+    php_flag engine off
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_flag engine off
+</IfModule>
+
+# LiteSpeed (which is what Hostinger actually runs) honours this one.
+<IfModule lsapi_module>
+    php_flag engine off
+</IfModule>
+
+RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh
+RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh
+
+AddType text/plain .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .sh
+
+# Belt and braces: refuse to serve anything that is not an expected media type.
+<FilesMatch "\.(?!(jpe?g|png|webp|gif|svg|avif|mp4|webm|pdf)$)[^.]*$">
+    Require all denied
+</FilesMatch>
+
+Options -Indexes -ExecCGI
+
+<IfModule mod_headers.c>
+    # An uploaded SVG is an XML document that can carry script. Serving uploads with
+    # a locked-down CSP and nosniff stops one from running if it is ever opened
+    # directly.
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set Content-Security-Policy "default-src 'none'; img-src 'self'; media-src 'self'; style-src 'unsafe-inline'; sandbox"
+    Header always set Content-Disposition "inline"
+</IfModule>
