@@ -39,7 +39,16 @@ final class Html
         $allowed = '<p><br><strong><em><b><i><u><s><ul><ol><li>'
                  . '<h2><h3><h4><blockquote><a><code><pre><hr>';
 
-        $clean = strip_tags($html, $allowed);
+        // strip_tags() removes tags but keeps the text between them, so
+        // "<script>alert(1)</script>" would survive as the visible text
+        // "alert(1)". Harmless to execute, but it renders on the page. These
+        // elements are content-bearing, so remove them whole first.
+        $clean = preg_replace('#<(script|style|iframe|object|embed)\b[^>]*>.*?</\1\s*>#is', '', $html) ?? $html;
+
+        // An unclosed <script> means everything after it is script content.
+        $clean = preg_replace('#<(script|style|iframe|object|embed)\b.*#is', '', $clean) ?? $clean;
+
+        $clean = strip_tags($clean, $allowed);
 
         // strip_tags keeps attributes, including onclick and href="javascript:".
         // Rebuild the tags that are allowed to carry attributes, and drop the
@@ -92,13 +101,34 @@ final class Html
         return $trimmed === '' ? null : $trimmed;
     }
 
-    /** A URL-safe slug. Falls back to a stable token for non-Latin titles. */
+    /**
+     * Common accented Latin characters and the ASCII they should become.
+     *
+     * An explicit map rather than iconv('ASCII//TRANSLIT'), whose output
+     * depends on the server's locale — the same title can slug differently on
+     * two machines, which silently breaks every existing URL when a site moves.
+     */
+    private const TRANSLITERATE = [
+        'à'=>'a','á'=>'a','â'=>'a','ã'=>'a','ä'=>'a','å'=>'a','æ'=>'ae',
+        'ç'=>'c','è'=>'e','é'=>'e','ê'=>'e','ë'=>'e','ì'=>'i','í'=>'i',
+        'î'=>'i','ï'=>'i','ñ'=>'n','ò'=>'o','ó'=>'o','ô'=>'o','õ'=>'o',
+        'ö'=>'o','ø'=>'o','ù'=>'u','ú'=>'u','û'=>'u','ü'=>'u','ý'=>'y',
+        'ÿ'=>'y','ß'=>'ss','œ'=>'oe','š'=>'s','ž'=>'z','đ'=>'d','ł'=>'l',
+    ];
+
+    /**
+     * A URL-safe slug. Falls back to a stable token for non-Latin titles.
+     */
     public static function slug(string $text): string
     {
-        $slug = strtolower(trim($text));
+        $slug = mb_strtolower(trim($text), 'UTF-8');
+        $slug = strtr($slug, self::TRANSLITERATE);
         $slug = preg_replace('/[^a-z0-9]+/', '-', $slug) ?? '';
         $slug = trim($slug, '-');
 
+        // A title in a script with no ASCII equivalent — Japanese, Devanagari —
+        // slugs to nothing. An empty slug is unreachable and collides with every
+        // other empty one, so derive a stable token from the title instead.
         return $slug !== '' ? $slug : 'item-' . substr(sha1($text), 0, 8);
     }
 

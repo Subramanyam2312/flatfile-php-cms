@@ -51,6 +51,21 @@ Create a page with the slug `home` and publish it — that becomes the front pag
 
 These commands were run on a clean clone before this README was written.
 
+## Tests
+
+```bash
+php tests/run.php           # everything
+php tests/run.php Html      # one group
+```
+
+84 tests, 214 assertions, no dependencies — the runner is 100 lines in `tests/bootstrap.php` and `tests/run.php`. It exits non-zero on failure, so it can gate a deploy script.
+
+**Why not PHPUnit.** This project's claim is that it runs on a host with nothing installed. A suite you cannot run without `composer install` first undercuts that for exactly the people most likely to be evaluating it. The trade is real — no mocking, no data providers, no coverage report — and if the suite ever needs those it has outgrown the runner and should move to PHPUnit as a dev dependency.
+
+The tests are adversarial where it matters. `HtmlTest` encodes bypasses that defeat a naive sanitiser: case-mixed `JaVaScRiPt:`, schemes padded with tab and newline, `data:` URIs, event handlers, `<img onerror>`. `StoreTest` executes a store file through PHP and asserts it emits nothing — the exact thing a web server would do if the `.htaccess` went missing. `HttpTest` boots a real server on a throwaway document root and drives it over HTTP: forged CSRF tokens, draft visibility, anonymous admin access, and an upload of a PHP file renamed `.png`.
+
+Writing them found three bugs that hand-testing had missed, including one where every item saved without an explicit slug received the same meaningless URL.
+
 ## Configuration
 
 There is no config file. Everything is set in **Settings** in the admin and stored in `data/settings.php`.
@@ -108,7 +123,7 @@ Read this section before choosing it.
 - **Not built for concurrent editing.** File locking prevents corruption, but this is designed for one person editing one site. It is not a multi-user CMS.
 - **Won't scale to thousands of items.** Every read parses the whole document. Fine for a brochure site or a blog with a few hundred posts; the wrong tool at ten thousand.
 - **No full-text search.** No index, and adding one to a flat-file store is a real project.
-- **No automated tests.** Verified end to end by hand — setup, login, publish, XSS payloads, CSRF forgery, draft visibility, unauthenticated access. That is not the same as a test suite, and it is the biggest gap in the repo.
+- **No coverage measurement.** 84 tests cover the store, auth, sanitiser, content rules and the HTTP surface, but nothing measures what they miss. The admin templates in particular are only exercised incidentally.
 - **No mailer.** Contact submissions are stored, not emailed. Adding SMTP means adding a dependency, which was the thing being avoided.
 - **No password reset.** No mail, so no reset link. Recovery means deleting `data/admin.php` on the server, which reopens setup; content is untouched.
 - **Templates escape their own output.** There is no auto-escaping layer, so a template that forgets `Html::escape()` is a live XSS hole. Read `views/` carefully before extending it.

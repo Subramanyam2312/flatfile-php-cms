@@ -73,7 +73,25 @@ final class Content
         }
 
         $storeName = $this->storeFor($type);
-        $slug      = Html::slug((string) ($input['slug'] ?? '')) ?: Html::slug($title);
+
+        // Decide which text to slug *before* slugging. Html::slug('') returns a
+        // hash-derived fallback rather than an empty string, so testing the
+        // result with ?: never falls through — and every item saved without an
+        // explicit slug would share one meaningless slug.
+        $requested = trim((string) ($input['slug'] ?? ''));
+
+        $slug = match (true) {
+            // An explicit slug always wins.
+            $requested !== '' => Html::slug($requested),
+
+            // Editing an existing item with the slug field left blank keeps the
+            // current URL. Re-deriving it from the title would mean renaming a
+            // published page silently moves it, breaking inbound links and
+            // everything already indexed against the old address.
+            $existingSlug !== null && $existingSlug !== '' => $existingSlug,
+
+            default => Html::slug($title),
+        };
         $body      = Html::sanitise((string) ($input['body'] ?? ''));
         $status    = ($input['status'] ?? 'draft') === 'published' ? 'published' : 'draft';
 
